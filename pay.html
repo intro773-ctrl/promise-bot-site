@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Checkout | Promise Myself Bot</title>
+    <style>
+        :root {
+            --primary: #007bff;
+            --success: #28a745;
+            --bg: #f4f7f9;
+            --text: #333;
+        }
+
+        body { 
+            font-family: -apple-system, system-ui, sans-serif; 
+            background: var(--bg); 
+            color: var(--text); 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            min-height: 100vh; 
+            margin: 0; 
+            padding: 0; 
+        }
+
+        .main-content {
+            flex: 1 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .container { 
+            background: white; 
+            padding: 40px; 
+            border-radius: 16px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05); 
+            max-width: 500px; 
+            width: 100%; 
+            text-align: center; 
+            box-sizing: border-box;
+        }
+
+        h1 { color: var(--primary); font-size: 28px; margin-bottom: 10px; margin-top: 0; }
+        p.subtitle { color: #666; margin-bottom: 30px; }
+
+        .product-card { 
+            border: 2px solid #eee; 
+            border-radius: 12px; 
+            padding: 20px; 
+            margin-bottom: 15px; 
+            text-align: left; 
+            cursor: pointer;
+            transition: 0.2s;
+            position: relative;
+            box-sizing: border-box;
+        }
+
+        .product-card:hover { border-color: var(--primary); background: #f8fbff; }
+        .product-card.selected { border-color: var(--primary); background: #f0f7ff; }
+        
+        .product-card.selected::after {
+            content: '✓';
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            color: var(--primary);
+            font-weight: bold;
+        }
+
+        .product-name { font-weight: bold; font-size: 18px; display: block; }
+        .product-price { color: var(--success); font-weight: bold; font-size: 16px; }
+        .product-desc { font-size: 14px; color: #777; margin-top: 8px; }
+
+        .pay-button { 
+            background: var(--primary); 
+            color: white; 
+            border: none; 
+            padding: 18px; 
+            font-size: 18px; 
+            font-weight: bold; 
+            border-radius: 10px; 
+            cursor: pointer; 
+            width: 100%; 
+            margin-top: 10px; 
+            box-shadow: 0 4px 12px rgba(0,123,255,0.3);
+        }
+
+        .pay-button:disabled { background: #ccc; cursor: not-allowed; box-shadow: none; }
+        
+        /* Фирменный черный футер, идентичный страницам Tilda */
+        footer { 
+            flex-shrink: 0;
+            width: 100%;
+            background-color: #0d0d0d;
+            padding: 60px 0 45px 0;
+            box-sizing: border-box;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            text-align: center;
+            font-size: 12px;
+            line-height: 1.55;
+            color: #ffffff;
+            font-family: -apple-system, system-ui, sans-serif; 
+        }
+
+        .footer-content a { 
+            color: #ffffff; 
+            text-decoration: none; 
+        }
+        
+        .footer-content a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+<div class="main-content">
+    <div class="container">
+        <h1>Promise Myself</h1>
+        <p class="subtitle">Select a subscription plan to continue.</p>
+
+        <div id="plans">
+            <div class="product-card" onclick="selectPlan(this, 'pri_01kq7r8s8p0ww0ed0x8patzyfb')">
+                <span class="product-name">Weekly Access</span>
+                <span class="product-price">$6.99 / week</span>
+                <div class="product-desc">Full access + 3-day free trial.</div>
+            </div>
+
+            <div class="product-card" onclick="selectPlan(this, 'pri_01kq7r3szmd0ehpbm7v7awej3c')">
+                <span class="product-name">Quarterly Plan</span>
+                <span class="product-price">$77.99 / 3 months</span>
+                <div class="product-desc">Save by paying every 3 months.</div>
+            </div>
+
+            <div class="product-card" onclick="selectPlan(this, 'pri_01kq7qzfjv47c859yafskhek5g')">
+                <span class="product-name">Yearly Membership</span>
+                <span class="product-price">$157.99 / year</span>
+                <div class="product-desc">Best value for long-term goals.</div>
+            </div>
+        </div>
+
+        <button id="checkoutBtn" class="pay-button" onclick="openPaddle()" disabled>Select a plan</button>
+        <p style="font-size: 12px; color: #aaa; margin-top: 15px;">Securely processed by Paddle</p>
+    </div>
+</div>
+
+<footer>
+    <div class="footer-content">
+        <a href="index.html" target="_blank" rel="noreferrer noopener">Promise Myself</a><br /><br />
+        <strong>Connect with our team:</strong><br />
+        Email: intro773@gmail.com<br /><br />
+        <a href="legal.html" target="_blank" rel="noreferrer noopener">Terms of Service</a>&nbsp;<a href="legal.html" target="_blank" rel="noreferrer noopener">| Privacy Policy</a><br /><br />
+    </div>
+</footer>
+
+<script src="https://cdn.paddle.com/paddle/v2/paddle.js"></script>
+<script>
+    // 1. Инициализация
+    Paddle.Initialize({ token: 'live_97fe92310bba10b79307bc05eae' });
+
+    let selectedPriceId = null;
+
+    // 2. Логика выбора тарифа
+    function selectPlan(element, priceId) {
+        document.querySelectorAll('.product-card').forEach(el => el.classList.remove('selected'));
+        element.classList.add('selected');
+        
+        selectedPriceId = priceId;
+        const btn = document.getElementById('checkoutBtn');
+        btn.disabled = false;
+        btn.innerText = 'Pay Now';
+    }
+
+    // 3. Открытие чекаута
+    function openPaddle() {
+        if (!selectedPriceId) return;
+        
+        Paddle.Checkout.open({
+            settings: { displayMode: "overlay", theme: "light", locale: "en" },
+            items: [{ priceId: selectedPriceId, quantity: 1 }]
+        });
+    }
+</script>
+
+</body>
+</html>
